@@ -532,10 +532,21 @@ const Editor = () => {
                 month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true 
               }) : '';
               
+              const renderTextWithLinks = (text) => {
+                const urlRegex = /(https?:\/\/[^\s]+)/g;
+                const parts = text.split(urlRegex);
+                return parts.map((part, i) => {
+                  if (part.match(urlRegex)) {
+                    return <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{color: '#3b82f6', textDecoration: 'underline'}}>{part}</a>;
+                  }
+                  return part;
+                });
+              };
+
               return (
                 <div key={idx} className="notepad-line" style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap' }}>
                   <span className="notepad-sender">{msg.sender === myLabel ? 'You' : msg.sender}:</span>{' '}
-                  <span className="notepad-text" style={{ flex: 1, minWidth: '200px' }}>{msg.text}</span>
+                  <span className="notepad-text" style={{ flex: 1, minWidth: '200px', wordBreak: 'break-word' }}>{renderTextWithLinks(msg.text)}</span>
                   {formattedTime && <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginLeft: 'auto', paddingLeft: '1rem' }}>{formattedTime}</span>}
                 </div>
               );
