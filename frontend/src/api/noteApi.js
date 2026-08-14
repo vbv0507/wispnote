@@ -47,3 +47,18 @@ export const sendMessage = async (slug, text, sender) => {
   const response = await api.post(`/notes/${slug}/messages`, { text, sender });
   return response.data;
 };
+
+export const uploadAttachment = async (slug, file, sender) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('uploadedBy', sender);
+  const response = await api.post(`/notes/${slug}/attachments`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return response.data;
+};
+
+export const deleteAttachment = async (slug, attachmentId) => {
+  const response = await api.delete(`/notes/${slug}/attachments/${attachmentId}`);
+  return response.data;
+};

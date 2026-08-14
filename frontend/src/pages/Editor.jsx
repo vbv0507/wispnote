@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getNote, renameNote, setPassword, removePassword, setExpiry as setExpiryApi, sendMessage } from '../api/noteApi';
+import { getNote, renameNote, setPassword, removePassword, setExpiry as setExpiryApi, sendMessage, uploadAttachment, deleteAttachment } from '../api/noteApi';
 import PasswordPrompt from './PasswordPrompt';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
@@ -10,9 +10,12 @@ const Editor = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
+  const [attachments, setAttachments] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   // Security state
   const [isLocked, setIsLocked] = useState(false);
@@ -64,14 +67,17 @@ const Editor = () => {
     setSettingsCurrentPassword('');
     setSettingsMessage('');
     setSettingsError('');
+    setSettingsCurrentPassword('');
     setCurrentPassword(null);
     setMessages([]);
+    setAttachments([]);
     setNewMessage('');
 
     const fetchNote = async () => {
       try {
         const data = await getNote(slug);
         setMessages(data.messages || []);
+        setAttachments(data.attachments || []);
         setIsLocked(data.locked);
         setNeedsPassword(false);
         setExpiresAt(data.expiresAt || null);
@@ -127,6 +133,7 @@ const Editor = () => {
   const handleUnlock = async (password) => {
     const data = await getNote(slug, password);
     setMessages(data.messages || []);
+    setAttachments(data.attachments || []);
     setIsLocked(true);
     setNeedsPassword(false);
     setCurrentPassword(password);
@@ -148,6 +155,35 @@ const Editor = () => {
       await sendMessage(slug, text, myLabel);
     } catch (err) {
       console.error('Failed to send message', err);
+    }
+  };
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !myLabel) return;
+    
+    setIsUploading(true);
+    try {
+      const updatedNote = await uploadAttachment(slug, file, myLabel);
+      setAttachments(updatedNote.attachments || []);
+    } catch (err) {
+      console.error('Failed to upload attachment', err);
+      alert(err.response?.data?.error || 'Failed to upload attachment');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId) => {
+    if (!window.confirm('Are you sure you want to delete this attachment?')) return;
+    
+    try {
+      const updatedNote = await deleteAttachment(slug, attachmentId);
+      setAttachments(updatedNote.attachments || []);
+    } catch (err) {
+      console.error('Failed to delete attachment', err);
+      alert(err.response?.data?.error || 'Failed to delete attachment');
     }
   };
 
@@ -449,6 +485,25 @@ const Editor = () => {
       {viewMode === 'edit' && (
         <div className="notepad-container">
           <div className="notepad-content">
+            {attachments.length > 0 && (
+              <div className="attachments-container">
+                {attachments.map((att, idx) => (
+                  <div key={idx} className="attachment-chip">
+                    {att.fileType && att.fileType.startsWith('image/') && (
+                      <img src={att.fileUrl} alt={att.fileName} className="attachment-thumb" />
+                    )}
+                    <div className="attachment-info">
+                      <a href={att.fileUrl} target="_blank" rel="noopener noreferrer" className="attachment-name">
+                        {att.fileName}
+                      </a>
+                      <span className="attachment-size">{(att.fileSize / 1024).toFixed(1)} KB</span>
+                    </div>
+                    <button className="btn-remove-attachment" onClick={() => handleDeleteAttachment(att._id)} title="Remove attachment">×</button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
             {messages.map((msg, idx) => (
               <div key={idx} className="notepad-line">
                 <span className="notepad-sender">{msg.sender === myLabel ? 'You' : msg.sender}:</span>{' '}
@@ -458,15 +513,34 @@ const Editor = () => {
             {myLabel && (
               <form className="notepad-input-line" onSubmit={handleSendMessage}>
                 <span className="notepad-sender">You:</span>{' '}
+                
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  style={{ display: 'none' }} 
+                  onChange={handleFileSelect}
+                  accept="image/*,.pdf,.doc,.docx,.txt,.csv"
+                />
+                <button 
+                  type="button" 
+                  className="btn-attach" 
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Attach file"
+                  disabled={isUploading}
+                >
+                  📎
+                </button>
+
                 <input 
                   type="text" 
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder=""
+                  placeholder={isUploading ? "Uploading..." : ""}
                   autoFocus
                   className="notepad-input"
+                  disabled={isUploading}
                 />
-                <button type="submit" style={{ display: 'none' }} disabled={!newMessage.trim()}></button>
+                <button type="submit" style={{ display: 'none' }} disabled={!newMessage.trim() || isUploading}></button>
               </form>
             )}
             <div ref={messagesEndRef} />
