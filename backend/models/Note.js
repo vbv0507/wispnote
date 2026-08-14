@@ -17,6 +17,14 @@ const noteSchema = new mongoose.Schema({
     sender: { type: String, required: true },
     sentAt: { type: Date, default: Date.now }
   }],
+  attachments: [{
+    fileName: String,
+    fileUrl: String,
+    fileType: String,
+    fileSize: Number,
+    uploadedBy: String,
+    uploadedAt: { type: Date, default: Date.now }
+  }],
   passwordHash: {
     type: String,
     default: null

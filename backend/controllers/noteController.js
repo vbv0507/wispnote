@@ -352,3 +352,82 @@ export const removePassword = async (req, res, next) => {
     next(error);
   }
 };
+
+import { uploadFile, deleteFile } from '../config/blobStorage.js';
+
+export const uploadAttachment = async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+    const { uploadedBy } = req.body;
+    
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file provided' });
+    }
+
+    const note = await Note.findOne({ slug: slug.toLowerCase() });
+    if (!note || isExpired(note)) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+
+    const auth = await verifyNotePassword(note, req);
+    if (!auth.ok) {
+      return res.status(auth.status).json({ error: auth.error, locked: auth.locked });
+    }
+
+    const { originalname, mimetype, size, buffer } = req.file;
+
+    const fileUrl = await uploadFile(buffer, originalname, mimetype);
+
+    const newAttachment = {
+      fileName: originalname,
+      fileUrl,
+      fileType: mimetype,
+      fileSize: size,
+      uploadedBy: uploadedBy || 'Anonymous',
+      uploadedAt: new Date()
+    };
+
+    note.attachments.push(newAttachment);
+    await note.save();
+
+    res.status(201).json(note);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteAttachment = async (req, res, next) => {
+  try {
+    const { slug, attachmentId } = req.params;
+
+    const note = await Note.findOne({ slug: slug.toLowerCase() });
+    if (!note || isExpired(note)) {
+      return res.status(404).json({ error: 'Note not found' });
+    }
+
+    const auth = await verifyNotePassword(note, req);
+    if (!auth.ok) {
+      return res.status(auth.status).json({ error: auth.error, locked: auth.locked });
+    }
+
+    const attachmentIndex = note.attachments.findIndex(a => a._id.toString() === attachmentId);
+    if (attachmentIndex === -1) {
+      return res.status(404).json({ error: 'Attachment not found' });
+    }
+
+    const attachment = note.attachments[attachmentIndex];
+
+    try {
+      await deleteFile(attachment.fileUrl);
+    } catch (err) {
+      console.error('Failed to delete blob from Azure, but will remove from DB anyway:', err);
+    }
+
+    note.attachments.splice(attachmentIndex, 1);
+    await note.save();
+
+    res.json(note);
+  } catch (error) {
+    next(error);
+  }
+};
