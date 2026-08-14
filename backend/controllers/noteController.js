@@ -40,7 +40,11 @@ const generateSlug = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz-', 8);
 
 export const createNote = async (req, res, next) => {
   try {
-    const { expiresAt } = req.body;
+    let { expiresAt } = req.body;
+    
+    if (!expiresAt) {
+      expiresAt = new Date(Date.now() + 2 * 60 * 1000).toISOString();
+    }
 
     const expiryValidation = validateExpiryDate(expiresAt);
     if (!expiryValidation.valid) {

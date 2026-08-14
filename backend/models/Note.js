@@ -43,8 +43,6 @@ const noteSchema = new mongoose.Schema({
   }
 });
 
-noteSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-
 noteSchema.pre('save', function () {
   this.updatedAt = Date.now();
 });

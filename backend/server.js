@@ -12,10 +12,13 @@ import { sanitizeInput } from './middleware/sanitize.js';
 import connectDB from './config/db.js';
 import noteRoutes from './routes/noteRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { startCleanupJob } from './cron/cleanup.js';
 
 dotenv.config();
 
 connectDB();
+startCleanupJob();
+
 
 const app = express();
 

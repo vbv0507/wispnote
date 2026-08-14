@@ -304,17 +304,20 @@ const Editor = () => {
 
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
       if (hours > 24) {
         const days = Math.floor(hours / 24);
         setTimeRemaining(`Expires in ${days}d ${hours % 24}h`);
-      } else {
+      } else if (hours > 0) {
         setTimeRemaining(`Expires in ${hours}h ${minutes}m`);
+      } else {
+        setTimeRemaining(`Expires in ${minutes}m ${seconds}s`);
       }
     };
 
     calculateRemaining();
-    const interval = setInterval(calculateRemaining, 60000);
+    const interval = setInterval(calculateRemaining, 1000);
     return () => clearInterval(interval);
   }, [expiresAt]);
 
