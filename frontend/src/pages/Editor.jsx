@@ -447,29 +447,30 @@ const Editor = () => {
       </header>
 
       {viewMode === 'edit' && (
-        <div className="chat-container">
-          <div className="messages-list">
+        <div className="notepad-container">
+          <div className="notepad-content">
             {messages.map((msg, idx) => (
-              <div key={idx} className={`message-bubble ${msg.sender === myLabel ? 'own' : 'other'}`}>
-                <div className="message-header">
-                  <span className="message-sender">{msg.sender === myLabel ? 'You' : msg.sender}</span>
-                  <span className="message-time">{new Date(msg.sentAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                </div>
-                <div className="message-text">{msg.text}</div>
+              <div key={idx} className="notepad-line">
+                <span className="notepad-sender">{msg.sender === myLabel ? 'You' : msg.sender}:</span>{' '}
+                <span className="notepad-text">{msg.text}</span>
               </div>
             ))}
+            {myLabel && (
+              <form className="notepad-input-line" onSubmit={handleSendMessage}>
+                <span className="notepad-sender">You:</span>{' '}
+                <input 
+                  type="text" 
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder=""
+                  autoFocus
+                  className="notepad-input"
+                />
+                <button type="submit" style={{ display: 'none' }} disabled={!newMessage.trim()}></button>
+              </form>
+            )}
             <div ref={messagesEndRef} />
           </div>
-          <form className="chat-input-bar" onSubmit={handleSendMessage}>
-            <input 
-              type="text" 
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type a message..."
-              autoFocus
-            />
-            <button type="submit" className="btn-primary" disabled={!newMessage.trim() || !myLabel}>Send</button>
-          </form>
         </div>
       )}
 
