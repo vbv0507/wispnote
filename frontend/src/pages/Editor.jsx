@@ -337,6 +337,16 @@ const Editor = () => {
     return <PasswordPrompt slug={slug} onUnlock={handleUnlock} />;
   }
 
+  if (timeRemaining === 'Expired') {
+    return (
+      <div className="not-found">
+        <h1>This room has expired</h1>
+        <p style={{ color: '#94a3b8', marginBottom: '1.5rem' }}>The chat and all attached files have been permanently deleted.</p>
+        <Link to="/" className="btn-primary" style={{ textDecoration: 'none', padding: '0.5rem 1rem', borderRadius: '4px' }}>Create a new room</Link>
+      </div>
+    );
+  }
+
   const wordCount = messages.reduce((acc, msg) => acc + msg.text.split(/\s+/).filter(w => w.length > 0).length, 0);
   const charCount = messages.reduce((acc, msg) => acc + msg.text.length, 0);
 
