@@ -511,8 +511,8 @@ const Editor = () => {
           <button className={`btn-small ${isCopied ? 'copied' : ''}`} onClick={handleCopyLink}>
             {isCopied ? 'Copied!' : 'Copy Link'}
           </button>
-          <span>{wordCount} words</span>
-          <span>{charCount} chars</span>
+          <span className="word-char-count">{wordCount} words</span>
+          <span className="word-char-count">{charCount} chars</span>
         </div>
       </header>
 
