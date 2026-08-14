@@ -380,6 +380,16 @@ export const uploadAttachment = async (req, res, next) => {
 
     const { originalname, mimetype, size, buffer } = req.file;
 
+    const MAX_STORAGE_BYTES = 100 * 1024 * 1024; // 100 MB
+    const currentTotalSize = note.attachments.reduce((total, att) => total + (att.fileSize || 0), 0);
+    const newTotalSize = currentTotalSize + size;
+
+    if (newTotalSize > MAX_STORAGE_BYTES) {
+      return res.status(400).json({ 
+        error: `Storage limit exceeded. This chat room can hold up to 100MB of attachments. Please upload larger files to Google Drive or OneDrive and share the link in the chat.` 
+      });
+    }
+
     const fileUrl = await uploadFile(buffer, originalname, mimetype);
 
     const newAttachment = {
