@@ -21,14 +21,27 @@ const verifyNotePassword = async (note, req) => {
 };
 
 const validateExpiryDate = (expiresAt) => {
-  if (!expiresAt) return { valid: true, date: null };
-  const parsedDate = new Date(expiresAt);
+  let parsedDate;
+  if (!expiresAt) {
+    // Default to 2 minutes if no expiry is provided (e.g. "Clear Expiry")
+    parsedDate = new Date(Date.now() + 2 * 60 * 1000);
+  } else {
+    parsedDate = new Date(expiresAt);
+  }
+
   if (isNaN(parsedDate.getTime())) {
     return { valid: false, error: 'Invalid expiry date' };
   }
+  
   if (parsedDate <= new Date()) {
     return { valid: false, error: 'Expiry must be in the future' };
   }
+
+  const maxExpiry = new Date(Date.now() + 60 * 60 * 1000);
+  if (parsedDate > maxExpiry) {
+    return { valid: false, error: 'Maximum allowed expiry is 1 hour from now.' };
+  }
+
   return { valid: true, date: parsedDate };
 };
 

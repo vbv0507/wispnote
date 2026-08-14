@@ -261,14 +261,15 @@ const Editor = () => {
     }
   };
 
-  const handleClearExpiry = async () => {
+  const handleClearExpiry = async (e) => {
+    e.preventDefault();
     setSettingsMessage('');
     setSettingsError('');
     try {
       const updatedNote = await setExpiryApi(slug, null);
       setExpiresAt(updatedNote.expiresAt || null);
       setSettingsExpiry('');
-      setSettingsMessage('Expiry cleared');
+      setSettingsMessage('Expiry reset to 2 minutes');
     } catch (err) {
       setSettingsError(err.response?.data?.error || 'Failed to clear expiry');
     }
@@ -472,7 +473,7 @@ const Editor = () => {
                       />
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button type="submit" className="btn-small btn-primary" style={{flex: 1}}>Set Expiry</button>
-                        <button type="button" className="btn-small" style={{flex: 1}} onClick={handleClearExpiry}>Clear Expiry</button>
+                        <button type="button" className="btn-small" style={{flex: 1}} onClick={handleClearExpiry}>Reset to 2 mins</button>
                       </div>
                     </form>
                     {settingsMessage && <p className="success-text">{settingsMessage}</p>}
