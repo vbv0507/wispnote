@@ -484,6 +484,11 @@ const Editor = () => {
           )}
         </div>
         <div className="header-right">
+          {timeRemaining && (
+            <span style={{color: '#ef4444', fontWeight: 'bold', marginRight: '1rem'}}>
+              {timeRemaining}
+            </span>
+          )}
           <button 
             className="btn-small" 
             onClick={() => fileInputRef.current?.click()}
@@ -522,12 +527,19 @@ const Editor = () => {
               </div>
             )}
             
-            {messages.map((msg, idx) => (
-              <div key={idx} className="notepad-line">
-                <span className="notepad-sender">{msg.sender === myLabel ? 'You' : msg.sender}:</span>{' '}
-                <span className="notepad-text">{msg.text}</span>
-              </div>
-            ))}
+            {messages.map((msg, idx) => {
+              const formattedTime = msg.sentAt ? new Date(msg.sentAt).toLocaleString(undefined, { 
+                month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true 
+              }) : '';
+              
+              return (
+                <div key={idx} className="notepad-line" style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                  <span className="notepad-sender">{msg.sender === myLabel ? 'You' : msg.sender}:</span>{' '}
+                  <span className="notepad-text" style={{ flex: 1, minWidth: '200px' }}>{msg.text}</span>
+                  {formattedTime && <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginLeft: 'auto', paddingLeft: '1rem' }}>{formattedTime}</span>}
+                </div>
+              );
+            })}
             {myLabel && (
               <form className="notepad-input-line" onSubmit={handleSendMessage}>
                 <span className="notepad-sender">You:</span>{' '}
