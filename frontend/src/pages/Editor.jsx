@@ -338,6 +338,13 @@ const Editor = () => {
 
   return (
     <div className="editor-container">
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        style={{ display: 'none' }} 
+        onChange={handleFileSelect}
+        accept="image/*,.pdf,.doc,.docx,.txt,.csv"
+      />
       <header className="editor-header">
         <div className="header-left">
           {isRenaming ? (
@@ -474,6 +481,14 @@ const Editor = () => {
           )}
         </div>
         <div className="header-right">
+          <button 
+            className="btn-small" 
+            onClick={() => fileInputRef.current?.click()}
+            title="Upload a file as an attachment"
+            disabled={isUploading}
+          >
+            {isUploading ? 'Uploading...' : '📎 Upload File'}
+          </button>
           <button className={`btn-small ${isCopied ? 'copied' : ''}`} onClick={handleCopyLink}>
             {isCopied ? 'Copied!' : 'Copy Link'}
           </button>
@@ -513,14 +528,6 @@ const Editor = () => {
             {myLabel && (
               <form className="notepad-input-line" onSubmit={handleSendMessage}>
                 <span className="notepad-sender">You:</span>{' '}
-                
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  style={{ display: 'none' }} 
-                  onChange={handleFileSelect}
-                  accept="image/*,.pdf,.doc,.docx,.txt,.csv"
-                />
                 <button 
                   type="button" 
                   className="btn-attach" 
@@ -530,7 +537,6 @@ const Editor = () => {
                 >
                   📎
                 </button>
-
                 <input 
                   type="text" 
                   value={newMessage}
